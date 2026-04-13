@@ -27,7 +27,9 @@ from torch import nn
 
 from nemo.collections.llm.gpt.model.base import GPTConfig, GPTModel
 from nemo.collections.llm.gpt.model.llama import HFLlamaImporter, Llama32Config1B
-from nemo.collections.llm.gpt.model.llama_embedding import LlamaEmbeddingExporter
+from nemo.collections.llm.gpt.model.llama_embedding import (
+    LlamaEmbeddingExporter,
+)
 from nemo.collections.llm.gpt.model.llama_embedding import (
     get_nv_embedding_layer_spec as bidirectional_attention_layer_spec,
 )

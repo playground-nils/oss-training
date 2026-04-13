@@ -18,6 +18,7 @@ NeMo dependency structure definition.
 This module analyzes the codebase to determine internal dependencies between NeMo collections and core components.
 """
 
+# Triggering formatting
 import ast
 import json
 import os
