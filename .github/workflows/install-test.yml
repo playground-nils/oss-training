@@ -1,14 +1,12 @@
 name: CI-Install-Check
-
-on:
+'on':
   pull_request:
     paths:
-      - "**"
-
+    - '**'
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref
+    }}
   cancel-in-progress: true
-
 jobs:
   test-installs-macos:
     name: ${{ matrix.os }}-py${{ matrix.python }}-${{ matrix.installer }}
@@ -16,112 +14,94 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
-        python: ["3.10", "3.11", "3.12"]
-        installer: ["pip-install", "nemo-install"]
+        os:
+        - macos-latest
+        python:
+        - '3.10'
+        - '3.11'
+        - '3.12'
+        installer:
+        - pip-install
+        - nemo-install
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "${{ matrix.python }}"
-
-      - name: Install NeMo
-        env:
-          INSTALLER: ${{ matrix.installer }}
-          NEMO_TAG: ${{ github.sha }}
-          NEMO_REPO: ${{ github.server_url }}/${{ github.repository }}
-        run: |
-          if [[ "$INSTALLER" == "pip-install" ]]; then
-            pip install --no-cache-dir -U pip
-            pip install --no-cache-dir ".[all]"
-          else
-            export NEMO_TAG
-            export NEMO_REPO
-            export INSTALL_DIR=$(pwd)
-
-            bash docker/common/install_dep.sh --library "te,mcore,extra" --mode install
-            pip install --no-cache-dir ".[all]"
-          fi
-
-      - name: Run import checks
-        run: |
-          # Run import checks
-          for collection in "asr" "tts" "nlp" "lightning" "core"; do
-            python tests/core_ptl/check_imports.py --domain "$collection"
-          done
-
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install NeMo
+      env:
+        INSTALLER: ${{ matrix.installer }}
+        NEMO_TAG: ${{ github.sha }}
+        NEMO_REPO: ${{ github.server_url }}/${{ github.repository }}
+      run: "if [[ \"$INSTALLER\" == \"pip-install\" ]]; then\n  pip install --no-cache-dir\
+        \ -U pip\n  pip install --no-cache-dir \".[all]\"\nelse\n  export NEMO_TAG\n\
+        \  export NEMO_REPO\n  export INSTALL_DIR=$(pwd)\n\n  bash docker/common/install_dep.sh\
+        \ --library \"te,mcore,extra\" --mode install\n  pip install --no-cache-dir\
+        \ \".[all]\"\nfi\n"
+    - name: Run import checks
+      run: "# Run import checks\nfor collection in \"asr\" \"tts\" \"nlp\" \"lightning\"\
+        \ \"core\"; do\n  python tests/core_ptl/check_imports.py --domain \"$collection\"\
+        \ndone\n"
   test-installs-linux-amd:
     name: ubuntu-22.04-amd-py${{ matrix.python }}-${{ matrix.installer }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11", "3.12"]
-        installer: ["pip-install", "nemo-install"]
+        python:
+        - '3.10'
+        - '3.11'
+        - '3.12'
+        installer:
+        - pip-install
+        - nemo-install
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install NeMo
-        env:
-          INSTALLER: ${{ matrix.installer }}
-        run: |
-          if [ "$INSTALLER" = "pip-install" ]; then
-            pip install --upgrade pip
-            pip install ".[all]"
-          else
-            export INSTALL_DIR=$(pwd)
-            bash docker/common/install_dep.sh --library "te,mcore,extra" --mode install
-            pip install --no-cache-dir ".[all]"
-          fi
-
-      - name: Run import checks
-        run: |
-          # Run import checks
-          for collection in "asr" "tts" "nlp" "lightning" "core"; do
-            python tests/core_ptl/check_imports.py --domain "$collection"
-          done
-
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install NeMo
+      env:
+        INSTALLER: ${{ matrix.installer }}
+      run: "if [ \"$INSTALLER\" = \"pip-install\" ]; then\n  pip install --upgrade\
+        \ pip\n  pip install \".[all]\"\nelse\n  export INSTALL_DIR=$(pwd)\n  bash\
+        \ docker/common/install_dep.sh --library \"te,mcore,extra\" --mode install\n\
+        \  pip install --no-cache-dir \".[all]\"\nfi\n"
+    - name: Run import checks
+      run: "# Run import checks\nfor collection in \"asr\" \"tts\" \"nlp\" \"lightning\"\
+        \ \"core\"; do\n  python tests/core_ptl/check_imports.py --domain \"$collection\"\
+        \ndone\n"
   test-installs-linux-arm:
     name: ubuntu-22.04-arm-py${{ matrix.python }}-${{ matrix.installer }}
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11", "3.12"]
-        installer: ["pip-install", "nemo-install"]
+        python:
+        - '3.10'
+        - '3.11'
+        - '3.12'
+        installer:
+        - pip-install
+        - nemo-install
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-
-      - name: Install NeMo
-        env:
-          INSTALLER: ${{ matrix.installer }}
-        run: |
-          if [ "$INSTALLER" = "pip-install" ]; then
-            pip install --upgrade pip
-            pip install -vvv ".[all]"
-          else
-            export INSTALL_DIR=$(pwd)
-            bash docker/common/install_dep.sh --library "te,mcore,extra" --mode install
-            pip install --no-cache-dir ".[all]"
-          fi
-
-      - name: Run import checks
-        run: |
-          # Run import checks
-          for collection in "asr" "tts" "nlp" "lightning" "core"; do
-            python tests/core_ptl/check_imports.py --domain "$collection"
-          done
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Install NeMo
+      env:
+        INSTALLER: ${{ matrix.installer }}
+      run: "if [ \"$INSTALLER\" = \"pip-install\" ]; then\n  pip install --upgrade\
+        \ pip\n  pip install -vvv \".[all]\"\nelse\n  export INSTALL_DIR=$(pwd)\n\
+        \  bash docker/common/install_dep.sh --library \"te,mcore,extra\" --mode install\n\
+        \  pip install --no-cache-dir \".[all]\"\nfi\n"
+    - name: Run import checks
+      run: "# Run import checks\nfor collection in \"asr\" \"tts\" \"nlp\" \"lightning\"\
+        \ \"core\"; do\n  python tests/core_ptl/check_imports.py --domain \"$collection\"\
+        \ndone\n"
